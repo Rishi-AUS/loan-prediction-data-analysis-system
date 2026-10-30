@@ -1,0 +1,134 @@
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder
+from google.colab import files
+
+uploaded = files.upload()
+
+df = pd.read_csv("loan_prediction_csv_data.csv")
+
+print("Original Dataset:")
+print(df.head())
+
+print("\nDataset Shape:")
+print(df.shape)
+
+print("\nMissing Values:")
+print(df.isnull().sum())
+
+df["LoanAmount"] = df["LoanAmount"].fillna(
+    df["LoanAmount"].median()
+)
+
+df["Loan_Amount_Term"] = df["Loan_Amount_Term"].fillna(
+    df["Loan_Amount_Term"].median()
+)
+
+df["Credit_History"] = df["Credit_History"].fillna(
+    df["Credit_History"].median()
+)
+
+df["Gender"] = df["Gender"].fillna(
+    df["Gender"].mode()[0]
+)
+
+df["Married"] = df["Married"].fillna(
+    df["Married"].mode()[0]
+)
+
+df["Dependents"] = df["Dependents"].fillna(
+    df["Dependents"].mode()[0]
+)
+
+df["Self_Employed"] = df["Self_Employed"].fillna(
+    df["Self_Employed"].mode()[0]
+)
+
+
+scaler = MinMaxScaler()
+
+df["ApplicantIncome"] = scaler.fit_transform(
+    df[["ApplicantIncome"]]
+)
+
+print("\nAfter Feature Scaling:")
+print(df[["ApplicantIncome"]].head())
+
+
+standard = StandardScaler()
+
+df["LoanAmount"] = standard.fit_transform(
+    df[["LoanAmount"]]
+)
+
+print("\nAfter Feature Standardization:")
+print(df[["LoanAmount"]].head())
+
+
+encoder = LabelEncoder()
+
+df["Gender"] = encoder.fit_transform(
+    df["Gender"]
+)
+
+print("\nAfter Label Encoding:")
+print(df[["Gender"]].head())
+
+print("\nGender Label Mapping:")
+
+for i, label in enumerate(encoder.classes_):
+    print(label, "=", i)
+
+
+
+df = pd.get_dummies(
+    df,
+    columns=["Property_Area"]
+)
+
+print("\nAfter One Hot Encoding:")
+print(df.head())
+
+
+print("\nFinal Preprocessed Dataset:")
+print(df.head())
+
+status_encoder = LabelEncoder()
+
+df["Actual_Status"] = status_encoder.fit_transform(
+    df["Loan_Status"]
+)
+
+df["Predicted_Status"] = df["Credit_History"].apply(
+    lambda x: 1 if x == 1 else 0
+)
+
+
+correct_predictions = (
+    df["Predicted_Status"] == df["Actual_Status"]
+).sum()
+
+total_records = len(df)
+
+accuracy = (
+    correct_predictions / total_records
+) * 100
+
+print("       PREDICTION ACCURACY")
+
+print("Correct Predictions:", correct_predictions)
+print("Total Records:", total_records)
+print("Accuracy:", round(accuracy, 2), "%")
+
+print("\nPrediction Results:")
+
+print(
+    df[
+        [
+            "Credit_History",
+            "Loan_Status",
+            "Predicted_Status"
+        ]
+    ].head(10)
+)
